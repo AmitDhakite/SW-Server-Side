@@ -1,6 +1,4 @@
 import User from "../models/user.model.js";
-import bcrypt from "bcrypt";
-const saltRounds = 10;
 
 export const register = (req, res) => {
   try {
@@ -10,15 +8,12 @@ export const register = (req, res) => {
       if (foundUser !== null && foundUser !== undefined) {
         res.status(200).send("User already exists");
       } else {
-        bcrypt.hash(newUser.password, saltRounds, function (err, hash) {
-          newUser.password = hash;
-          User.create(newUser, (err) => {
-            if (!err) {
-              res.status(200).send("User Registered");
-            } else {
-              res.status(400).json(err);
-            }
-          });
+        User.create(newUser, (err) => {
+          if (!err) {
+            res.status(200).send("User Registered");
+          } else {
+            res.status(400).json(err);
+          }
         });
       }
     });
@@ -31,6 +26,26 @@ export const getUsers = (req, res) => {
   try {
     User.find({}, (err, foundUsers) => {
       res.status(200).json(foundUsers);
+    });
+  } catch (e) {
+    res.status(500).json(e);
+  }
+};
+
+export const login = (req, res) => {
+  try {
+    // console.log(req.body);
+    const newUser = req.body;
+    User.findOne({ email: newUser.email }, (err, foundUser) => {
+      if (foundUser !== null && foundUser !== undefined) {
+        if (foundUser.password === newUser.password) {
+          res.status(200).json(foundUser);
+        } else {
+          res.status(200).send("Incorrect Credentials");
+        }
+      } else {
+        res.status(200).send("Incorrect Credentials");
+      }
     });
   } catch (e) {
     res.status(500).json(e);
